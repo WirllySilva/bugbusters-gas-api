@@ -1,0 +1,41 @@
+{
+  "name": "bugbusters-gas-api",
+  "version": "1.0.0",
+  "description": "API REST desenvolvida em **Node.js + TypeScript** utilizando arquitetura em camadas e princípios de Programação Orientada a Objetos (POO).  \r O objetivo da aplicação é monitorar o consumo de gás GLP por meio de sensores (simulados no MVP), gerenciar cilindros dos usuários, permitir contratação de recarga de gás, gerenciar fornecedores e disponibilizar dados para um aplicativo mobile.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WirllySilva/bugbusters-gas-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/WirllySilva/bugbusters-gas-api/issues"
+  },
+  "homepage": "https://github.com/WirllySilva/bugbusters-gas-api#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/node": "^24.10.1",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "globals": "^16.5.0",
+    "jiti": "^2.6.1",
+    "prettier": "^3.6.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.47.0"
+  }
+}
