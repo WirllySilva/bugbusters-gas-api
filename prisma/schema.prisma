@@ -1,21 +1,215 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-generator client {
-  provider = "prisma-client"
-}
 
 datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id        String   @id @default(uuid())
-  name      String
-  phone     String   @unique
-  createdAt DateTime @default(now())
+generator client {
+  provider = "prisma-client-js"
 }
 
+// ==========================
+//  ENUMS
+// ==========================
+
+enum role {
+  CLIENT
+  SUPPLIER
+  ADMIN
+}
+
+enum delivery_type {
+  DELIVERY
+  PICKUP
+}
+
+enum status {
+  PENDING
+  ACCEPTED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+enum type {
+  LEAK
+  HIGH_CONSUMPTION
+  SENSOR_OFFLINE
+}
+
+// ==========================
+//  USER
+// ==========================
+
+model user {
+  user_id     String    @id @default(uuid())
+  role        role
+  name        String?
+  phone       String     @unique
+  email       String?
+  is_verified Boolean    @default(false)
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+  deleted_at  DateTime?
+
+  // Relations
+  addresses          address[]
+  sensor_reading     sensor_reading[]
+  consumption_history consumption_history[]
+  cylinder_change    cylinder_change[]
+  alerts             alert[]
+  orders_as_client   order[] @relation("client_orders")
+  orders_as_supplier order[] @relation("supplier_orders")
+  supplier_info      supplier_info?
+
+  @@index([phone])
+}
+
+// ==========================
+//  OTP CODE
+// ==========================
+
+model otp_code {
+  id         String   @id @default(uuid())
+  phone      String
+  otp_code   String
+  expires_at DateTime
+  created_at DateTime @default(now())
+
+  @@index([phone])
+}
+
+// ==========================
+//  ADDRESS
+// ==========================
+
+model address {
+  address_id   String   @id @default(uuid())
+  user_id      String
+  street       String
+  number       String
+  neighborhood String
+  city         String
+  state        String
+  zip_code     String
+  latitude     Decimal?
+  longitude    Decimal?
+  label        String?
+  is_default   Boolean   @default(false)
+  created_at   DateTime  @default(now())
+
+  // Relations
+  user   user   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  orders order[]
+
+  @@index([user_id])
+}
+
+// ==========================
+//  SENSOR READING
+// ==========================
+
+model sensor_reading {
+  id         String   @id @default(uuid())
+  user_id    String
+  weight_kg  Float
+  percent    Float?
+  created_at DateTime @default(now())
+
+  user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+// ==========================
+//  CONSUMPTION HISTORY
+// ==========================
+
+model consumption_history {
+  id               String   @id @default(uuid())
+  user_id          String
+  date             DateTime @db.Date
+  consumption_daily Decimal?
+  min_percentage   Int?
+  max_percentage   Int?
+  created_at       DateTime @default(now())
+
+  user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+// ==========================
+//  CYLINDER CHANGE
+// ==========================
+
+model cylinder_change {
+  id         String   @id @default(uuid())
+  user_id    String
+  created_at DateTime @default(now())
+
+  user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+// ==========================
+//  ORDER
+// ==========================
+
+model order {
+  order_id     String      @id @default(uuid())
+  client_id    String
+  supplier_id  String
+  address_id   String?
+  delivery_type delivery_type
+  status        status
+  notes         String?
+  price         Decimal?    @db.Decimal(10,2)
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+  delivered_at  DateTime?
+
+  // Relations
+  client   user   @relation("client_orders", fields: [client_id], references: [user_id], onDelete: Restrict)
+  supplier user   @relation("supplier_orders", fields: [supplier_id], references: [user_id], onDelete: Restrict)
+  address  address? @relation(fields: [address_id], references: [address_id])
+
+  @@index([client_id])
+  @@index([supplier_id])
+  @@index([address_id])
+}
+
+// ==========================
+//  ALERT
+// ==========================
+
+model alert {
+  alert_id   String   @id @default(uuid())
+  user_id    String
+  type       type
+  message    String
+  handled    Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+// ==========================
+//  SUPPLIER INFO
+// ==========================
+
+model supplier_info {
+  su_info_id      String   @id @default(uuid())
+  user_id         String   @unique
+  payment_methods Json?
+  open_time       String?
+  close_time      String?
+  open_days       Json?
+  is_active       Boolean  @default(true)
+  deliveryTimes   Int?
+  created_at      DateTime @default(now())
+
+  user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+}
