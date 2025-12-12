@@ -57,15 +57,17 @@ export function createAuthControllers(prisma: PrismaClient) {
                 user: result.user
             });
 
-        } catch (error: any) {
-            // Tratamento de erros específicos 
-            if (error.message === 'Código inválido' || error.message === 'Código expirado') {
-                return res.status(401).json({ message: error.message });
-            } else if (error.message === 'Usuário não encontrado') {
-                return res.status(404).json({ message: error.message });
+        } catch (error) {
+            
+            const err = error as Error;
+
+            if (err.message === 'Código inválido' || err.message === 'Código expirado') {
+                return res.status(401).json({ message: err.message });
+            } else if (err.message === 'Usuário não encontrado') {
+                return res.status(404).json({ message: err.message });
             }
 
-            console.error('Erro no controller verifyOtp:', error);
+            console.error('Erro no controller verifyOtp:', err);
             return res.status(500).json({ error: 'Falha na autenticação.' });
         }
     };
