@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-// 👇 1. ADICIONE ESSE IMPORT AQUI!
+
 import { role } from '@prisma/client'; 
 
 import { v4 as uuidv4 } from 'uuid';
