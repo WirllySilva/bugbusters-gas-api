@@ -1,20 +1,20 @@
-import { CreatConsumptionDTO } from "../dtos/CreateConsumptionDTO";
-import { ConsumptionRepository } from "../repositories/ConsumptionRepository";
+import { CreateSensorReadingDTO } from "../dtos/CreateSensorReadingDTO";
+import { SensorReadingRepository } from "../repositories/SensorReadingRepository";
 
 export class ConsumptionService {
-    constructor(private readonly repository: ConsumptionRepository) {
+    constructor(private readonly repository: SensorReadingRepository) {
 
     }
 
     // esse método assinc vai registrar o consumo.
-    async registerConsumption(data: CreatConsumptionDTO) {
+    async registerReading(data: CreateSensorReadingDTO) {
         const record = await this.repository.save(data);
 
 
         // algumas condições da nossa regra de negócio.
-        if (data.percentageRemaining <= 5) {
+        if (data.percent <= 5) {
             console.warn("CRITICAL ALERT: Gas level below 5%");
-        } else if (data.percentageRemaining <= 20) {
+        } else if (data.percent <= 20) {
             console.warn("WARNING: Gas level below 20%");
         }
 
