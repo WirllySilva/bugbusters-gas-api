@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { PrismaClient } from '@prisma/client'; 
 import authRoutes from "./routes/index"; 
+import consumptionRoutes from "./routes/consumption.routes";
 
 
 // INICIALIZAÇÃO DO PRISMA: Acontece APÓS o dotenv.config()
@@ -11,6 +12,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(consumptionRoutes);
 
 // Passa o cliente Prisma para as rotas:
 app.use("/api", authRoutes(prisma)); 
