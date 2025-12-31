@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { createAuthControllers } from '../controllers'; 
 import { PrismaClient } from '@prisma/client'; // para tipagem
+import providerRoutes from "./ProvidersRoutes";
 
 // função que aceita o cliente Prisma
 export default function authRoutes(prisma: PrismaClient) {
@@ -11,6 +12,8 @@ export default function authRoutes(prisma: PrismaClient) {
 
     router.post('/auth/send-otp', sendOtp); 
     router.post('/auth/verify-otp', verifyOtp);
+
+    router.use(providerRoutes(prisma));
 
     return router;
 }
