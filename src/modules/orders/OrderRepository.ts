@@ -18,7 +18,7 @@ export class OrderRepository {
         address_id: data.address_id,
         delivery_type: data.delivery_type,
         notes: data.notes,
-        status: status.PENDING, // 🔥 regra do projeto
+        status: status.PENDING, 
       },
     });
   }

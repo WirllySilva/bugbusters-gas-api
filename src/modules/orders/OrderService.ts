@@ -14,7 +14,7 @@ export class OrderService {
   private orderRepository = new OrderRepository();
 
   async create(data: CreateOrderInput) {
-    // 1️⃣ Verifica se fornecedor existe e é SUPPLIER
+    // Verifica se fornecedor existe e é SUPPLIER
     const supplier = await prisma.user.findUnique({
       where: { user_id: data.supplier_id },
     });
@@ -23,7 +23,7 @@ export class OrderService {
       throw new Error('Fornecedor inválido');
     }
 
-    // 2️⃣ (Opcional) Verificar endereço pertence ao cliente
+    // (Opcional) Verificar endereço pertence ao cliente
     if (data.address_id) {
       const address = await prisma.address.findFirst({
         where: {
@@ -37,7 +37,7 @@ export class OrderService {
       }
     }
 
-    // 3️⃣ Criar pedido
+    // Criar pedido
     return this.orderRepository.create(data);
   }
 }

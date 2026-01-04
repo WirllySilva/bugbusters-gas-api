@@ -1,4 +1,4 @@
 export interface CreateAlertDTO {
-    type: Enum;
-    message: Text;
+    type: string;
+    message: string;
 }

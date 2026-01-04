@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { PrismaClient } from '@prisma/client'; 
 import authRoutes from "./routes/index"; 
-
+import 'reflect-metadata';
 
 // INICIALIZAÇÃO DO PRISMA: Acontece APÓS o dotenv.config()
 const prisma = new PrismaClient(); 

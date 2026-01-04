@@ -6,6 +6,10 @@
     "outDir": "./dist",
     "moduleResolution": "node",
     "typeRoots": ["./node_modules/@types", "./src/@types"],
+    
+    // 👉 ADIÇÕES NECESSÁRIAS PARA TYPEORM
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
