@@ -1,18 +1,21 @@
 import axios from "axios";
 
 export interface SensorReading {
-  currentWeight: number;
-  percentageRemaining: number;
-  timestamp: Date;
+    user_id: string;
+    weight_kg: number;
+    percent: number;
+    created_at: Date;
 }
 
 export class FakeSensor {
+    private readonly user_id: string;
     private readonly initialWeight: number;
     private currentWeight: number;
     private readonly minConsumptionPerCycle: number;
     private readonly maxConsumptionPerCycle: number;
 
-    constructor(initialWeight: number, minConsumptionPerCycle = 0.02, maxConsumptionPerCycle = 0.08) {
+    constructor(user_id: string, initialWeight: number, minConsumptionPerCycle = 0.02, maxConsumptionPerCycle = 0.08) {
+        this.user_id = user_id;
         this.initialWeight = initialWeight;
         this.currentWeight = initialWeight;
         this.minConsumptionPerCycle = minConsumptionPerCycle;
@@ -47,9 +50,10 @@ export class FakeSensor {
         this.reduceWeight();
 
         return {
-            currentWeight: Number(this.currentWeight.toFixed(3)),
-            percentageRemaining: this.calculatePercentageRemaining(),
-            timestamp: new Date(),
+            user_id: this.user_id,
+            weight_kg: Number(this.currentWeight.toFixed(3)),
+            percent: this.calculatePercentageRemaining(),
+            created_at: new Date(),
         }
     }
 
@@ -57,10 +61,15 @@ export class FakeSensor {
     public async sendReading(): Promise<void> {
         const reading = this.getReading();
 
-        console.log(`[FakeSensor] Sending reading -> Weight: ${reading.currentWeight}kg | Remaining: ${reading.percentageRemaining}%`);
+        console.log(`[FakeSensor] Sending reading -> User: ${reading.user_id} | Weight: ${reading.weight_kg}kg | Remaining: ${reading.percent}% | Created: ${reading.created_at}`);
 
         try {
-            await axios.post("http://localhost:3000/consumption/read", reading);
+            await axios.post("http://localhost:3000/consumption/read", {
+                user_id: reading.user_id,
+                weight_kg: reading.weight_kg,
+                percent: reading.percent,
+                created_at: reading.created_at
+            });
         } catch (error: unknown) {
             if (error instanceof Error) {
                 console.error("[FakeSensor] Error:", error.message);
