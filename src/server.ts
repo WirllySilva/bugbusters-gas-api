@@ -3,6 +3,7 @@ import cors from "cors";
 import { PrismaClient } from '@prisma/client'; 
 import authRoutes from "./routes/index"; 
 import consumptionRoutes from "./routes/consumption.routes";
+import { startFakeSensor } from "./fake-sensor";
 
 
 // INICIALIZAÇÃO DO PRISMA: Acontece APÓS o dotenv.config()
@@ -26,3 +27,5 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
+
+startFakeSensor();
