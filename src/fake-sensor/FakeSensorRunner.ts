@@ -18,7 +18,7 @@ export class FakeSensorRunner {
 
         // node cron fica responsavel por chamar nosso método de leitura a cada 1 minuto, 
         cron.schedule("*/1 * * * *", async () => {
-            console.log(`[FakeSensorRunner] Running at ${new Date().toISOString()}`);
+            console.log(`[FakeSensorRunner] Running at ${new Date()}`);
             
            for(const sensor of sensors) {
             await sensor.sendReading();

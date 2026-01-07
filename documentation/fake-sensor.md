@@ -107,4 +107,4 @@ Percentage Remaining
 
 ## 10. PostMan test - POST (/sensor-readings)
 
-![PostmanTest](/documentation/images/Postman-POSTsensor-readings.png)
+![PostmanTest](/documentation/images/postman-POSTsensor-readings.png)

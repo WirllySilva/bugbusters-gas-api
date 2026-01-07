@@ -64,7 +64,7 @@ export class FakeSensor {
         console.log(`[FakeSensor] Sending reading -> User: ${reading.user_id} | Weight: ${reading.weight_kg}kg | Remaining: ${reading.percent}% | Created: ${reading.created_at}`);
 
         try {
-            await axios.post("http://localhost:3000/consumption/read", {
+            await axios.post("http://localhost:3000/consumption/sensor-readings", {
                 user_id: reading.user_id,
                 weight_kg: reading.weight_kg,
                 percent: reading.percent,
