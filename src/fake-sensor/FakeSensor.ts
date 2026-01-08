@@ -22,6 +22,7 @@ export class FakeSensor {
         this.maxConsumptionPerCycle = maxConsumptionPerCycle;
     }
 
+    // método pra gerar o valor que será consumido
     private generateConsumption(): number {
         const range = this.maxConsumptionPerCycle - this.minConsumptionPerCycle; // Variavel recebe o resultado da subtração de consumo max e min. é usa depois para termos um range do consumo. 
         const randomFactor = Math.random(); // gera um valor aleatório  entre 0 e 1.
@@ -30,7 +31,7 @@ export class FakeSensor {
 
     //Consumo aleatório do gás, usando nosso metodo de gerador de cosumo.
     private reduceWeight(): void { 
-        const consumption = this.generateConsumption(); // Recebe o valor aleatório da nossa funçao
+        const consumption = this.generateConsumption(); // Recebe o valor aleatório da nossa funçao generate
         this.currentWeight -= consumption;
 
         if (this.currentWeight < 0) { // Nosso peso atual nunca será abaixo de zero pois nosso controle não deixa.
