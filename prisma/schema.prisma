@@ -123,6 +123,28 @@ model consumption_event {
   @@index([user_id])
 }
 
+model consumption_current {
+  id          Int       @id @default(autoincrement())
+  user_id     String    @unique
+  weight_kg   Float
+  percent     Float
+  updated_at  DateTime  @default(now())
+}
+
+model consumption_hourly {
+  id        Int     @id @default(autoincrement())
+  user_id   String
+  hour      DateTime
+  used_kg   Float
+}
+
+model consumption_daily {
+  id        Int     @id @default(autoincrement())
+  user_id   String
+  day       DateTime
+  used_kg   Float
+}
+
 enum ConsumptionEventType {
   SIGNIFICANT_DROP
   LOW_LEVEL
