@@ -55,7 +55,7 @@ model user {
 
   // Relations
   addresses          address[]
-  sensor_reading     sensor_reading[]
+  consumption_event     consumption_event[]
   consumption_history consumption_history[]
   cylinder_change    cylinder_change[]
   alerts             alert[]
@@ -110,16 +110,25 @@ model address {
 //  SENSOR READING
 // ==========================
 
-model sensor_reading {
+model consumption_event {
   id         String   @id @default(uuid())
   user_id    String
   weight_kg  Float
   percent    Float?
+  event      ConsumptionEventType
   created_at DateTime @default(now())
 
   user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@index([user_id])
+}
+
+enum ConsumptionEventType {
+  SIGNIFICANT_DROP
+  LOW_LEVEL
+  CRITICAL_LEVEL
+  CYLINDER_REPLACED
+  DAILY_BASELINE
 }
 
 // ==========================
