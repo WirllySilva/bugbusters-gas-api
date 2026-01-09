@@ -13,7 +13,12 @@ It generates gradual gas consumption values and sends readings to the API, allow
 
 ## 2. Data Flow
 
-FakeSensor → POST /consumption/readings → API → Service → Prisma → PostgreSQL → Alerts
+FakeSensor → ConsumptionController → ConsumptionService → 
+  ├─ ConsumptionEventRepository
+  ├─ ConsumptionCurrentRepository
+  ├─ ConsumptionHourlyRepository
+  └─ ConsumptionDailyRepository
+→ PostgreSQL → NotificationService (WhatsApp / Push)
 
 ---
 
@@ -84,16 +89,7 @@ Time and Action
 12:02 / It sends reading
 
 ---
-
-## 7. Alerts
-
-Percentage Remaining
-
-<= 20%  →   Warning
-<= 5%   →   Critical alert
-
----
-## 8. Benefits
+## 7. Benefits
 
 * Full system test without hardware
 * Continuous data generation
@@ -101,10 +97,10 @@ Percentage Remaining
 * Supports academic demonstration
 
 
-## 9. Use Case Diagram (portuguese)
+## 8. Use Case Diagram (portuguese)
 
 ![FakeSensor Use case diagram](/documentation/images/fakesensor-usecase-diagram.png)
 
-## 10. PostMan test - POST (/sensor-readings)
+## 09. PostMan test - POST (/sensor-readings)
 
 ![PostmanTest](/documentation/images/postman-POSTsensor-readings.png)
