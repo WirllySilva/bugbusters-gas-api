@@ -2,15 +2,17 @@ import { CreateConsumptionEventDTO } from "../dtos/CreateConsumptionEventDTO";
 import { CreatSensorReadingDTO } from "../dtos/CreatSensorReadingDTO";
 import { ConsumptionEventRepository } from "../repositories/ConsumptionEventRepository";
 import { ConsumptionEventType } from "@prisma/client";
+import { ConsumptionCurrentRepository } from "../repositories/ConsumptionCurrentRepository";
 
 export class ConsumptionService {
-    constructor(private readonly repository: ConsumptionEventRepository) {
-
+    constructor(
+        private readonly eventRepository: ConsumptionEventRepository, 
+        private readonly currentRepository: ConsumptionCurrentRepository){
     }
         
     // esse método assinc vai registrar um evento de consumo.
     async registerEvent(data: CreatSensorReadingDTO) {
-        const last = await this.repository.findLastByUser(data.user_id);
+        const last = await this.eventRepository.findLastByUser(data.user_id);
 
         let event: ConsumptionEventType | null = null;     
 
@@ -22,7 +24,7 @@ export class ConsumptionService {
             event = "LOW_LEVEL";
         }
 
-        if (!last || this.isFirstReadingOfDay(last.created_at)) {
+        if ((!last || this.isFirstReadingOfDay(last.created_at)) && !event) {
             event = "DAILY_BASELINE";
         }
 
@@ -34,7 +36,7 @@ export class ConsumptionService {
             ...data, event
         }
 
-        return this.repository.save(payload);
+        return this.eventRepository.save(payload);
     }
 
     private isFirstReadingOfDay(date: Date): boolean {
@@ -43,11 +45,26 @@ export class ConsumptionService {
     }
 
     async processReading(data: CreatSensorReadingDTO) {
-        const current = await this.repository.getCurrent(data.user_id);
+        const current = await this.currentRepository.getCurrent(data.user_id);
 
         if(!current) {
-            await this.repository.creatCurrent(data);
+            await this.currentRepository.creatCurrent(data);
             return;
+        }
+
+        const diff = data.weight_kg - current.weight_kg;
+
+        if(diff > 1) {
+            await this.currentRepository.updateCurrent(data);
+
+            await this.eventRepository.save({
+                user_id: data.user_id,
+                weight_kg: data.weight_kg,
+                percent: data.percent,
+                event: "CYLINDER_REPLACED"
+            });
+
+            console.log(`[SERVICE] Cylinder replaced detected for user ${data.user_id}`);
         }
 
         const used = current.weight_kg - data.weight_kg;
@@ -55,24 +72,44 @@ export class ConsumptionService {
             return;
         }
 
-        await this.repository.updateCurrent(data);
+        await this.currentRepository.updateCurrent(data);
 
-        if(this.isNewHour(current.updated_at)) {
-            await this.repository.saveHourly(data.user_id, used);
+        const lastHourly = await this.currentRepository.findLastHourly(data.user_id);
+        if(this.isNewHour(lastHourly?.hour)) {
+            await this.currentRepository.saveHourly(data.user_id, used);
         }
 
-        if(this.isNewDay(current.updated_at)) {
-            await this.repository.saveDaily(data.user_id, used);
+
+        const lastDaily = await this.currentRepository.findLastDaily(data.user_id);
+        if(this.isNewDay(lastDaily?.day)) {
+            await this.currentRepository.saveDaily(data.user_id, used);
         }
     }
 
-    // método simples pra pegar a hora de um Date
-    private isNewHour(date: Date) {
-        return new Date().getHours() !== date.getHours();
+
+    private isNewHour(lastHour?: Date) {
+        if(!lastHour) {
+            return true;
+        }
+
+        const now = new Date();
+        return(
+            now.getHours() !== lastHour.getHours() ||
+            now.getDate() !== lastHour.getDate()
+        );
     }
 
-    private isNewDay(date: Date) {
-        return new Date().getDay() !== date.getDay();
+    private isNewDay(lastDay?: Date) {
+        if(!lastDay) {
+            return true;
+        }
+
+        const now = new Date();
+        return (
+            now.getDate() !== lastDay.getDate() ||
+            now.getMonth() !== lastDay.getMonth() ||
+            now.getFullYear() !== lastDay.getFullYear()
+        );
     }
 
 
