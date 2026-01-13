@@ -161,6 +161,9 @@ Distribuído sob a licença MIT. Veja LICENSE para mais informações.
 - Bárbara Paranhos - [GitHub](https://github.com/barbpsouza)
 - Maria Clara - [GitHub](https://github.com/clrasdev)
 - Paulo Fraga - [GitHub](https://github.com/pauloffraga)
+---
+
+## Mais algumas informações
 
 - Contato: wirlly.silva@gmail.com
 - Reportar Bug: GitHub Issues
