@@ -156,14 +156,15 @@ Distribuído sob a licença MIT. Veja LICENSE para mais informações.
 
 ## Equipe BugBusters
 
-Lucas Henrique - [GitHub](https://github.com/lurikke)
-Wirlly Silva - [GitHub](https://github.com/WirllySilva)
-Bárbara Paranhos - [GitHub](https://github.com/barbpsouza)
-Maria Clara - [GitHub](https://github.com/clrasdev)
-Paulo Fraga - [GitHub](https://github.com/pauloffraga)
+- Lucas Henrique - [GitHub](https://github.com/lurikke)
+- Wirlly Silva - [GitHub](https://github.com/WirllySilva)
+- Bárbara Paranhos - [GitHub](https://github.com/barbpsouza)
+- Maria Clara - [GitHub](https://github.com/clrasdev)
+- Paulo Fraga - [GitHub](https://github.com/pauloffraga)
 
-Contato: wirlly.silva@gmail.com
-Reportar Bug: GitHub Issues
-Documentação: docs/
+- Contato: wirlly.silva@gmail.com
+- Reportar Bug: GitHub Issues
+- Documentação: docs/
+---
 
 # Thank U!
