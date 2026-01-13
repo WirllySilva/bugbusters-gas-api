@@ -1,4 +1,6 @@
-#  BugBusters Gas Control API
+<div align="center">
+
+# BugBusters Gas Control API
 
 > API REST para monitoramento e gestão de GLP com alertas inteligentes
 
@@ -7,6 +9,8 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)](https://www.postgresql.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-ORM-purple.svg)](https://www.prisma.io/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+</div>
 
 ---
 
