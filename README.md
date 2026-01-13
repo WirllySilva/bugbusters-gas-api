@@ -1,4 +1,16 @@
-# 🔥 BugBusters Gas API
+# 🔥 BugBusters Gas Control API
+
+> API REST para monitoramento e gestão de GLP com alertas inteligentes
+
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)](https://www.postgresql.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-ORM-purple.svg)](https://www.prisma.io/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+---
+
+## 📋 Sobre o Projeto
 
 API REST desenvolvida em **Node.js + TypeScript** utilizando arquitetura em camadas e princípios de Programação Orientada a Objetos (POO).  
 O objetivo da aplicação é monitorar o consumo de gás GLP por meio de sensores (simulados no MVP), gerenciar cilindros dos usuários, permitir contratação de recarga de gás, gerenciar fornecedores e disponibilizar dados para um aplicativo mobile.
@@ -7,55 +19,52 @@ Este projeto foi desenvolvido pela equipe **BugBusters** para a disciplina de De
 
 ---
 
-# 📦 Objetivo do Projeto
+## 🎯 Funcionalidades Principais
 
-Criar uma API completa capaz de:
+### 👤 Autenticação & Usuários
+- ✅ Autenticação via OTP (código por telefone)
+- ✅ Cadastro de clientes e fornecedores
+- ✅ Multiplos endereços por usuário
 
-- Registrar usuários e seus cilindros de gás  
-- Receber e processar leituras de consumo  
-- Gerar alertas sobre nível baixo de gás  
-- Disponibilizar histórico de uso  
-- Simular um sensor real para testes  
-- Listar e gerenciar **fornecedores de gás**  
-- Expor endpoints para o aplicativo mobile consumir  
+### 📡 Monitoramento Inteligente
+- ✅ Sensor simulado com consumo realista
+- ✅ Detecção de vazamentos e consumo excessivo
+- ✅ Alertas automáticos via WhatsApp
+- ✅ Histórico de consumo com exportação PDF
 
----
+### 🛒 Gestão de Pedidos
+- ✅ Solicitação de GLP com entrega/retirada
+- ✅ Listagem de fornecedores com filtros
+- ✅ Status do pedido em tempo real
 
-# 🚀 MVP – Funcionalidades Principais
+### 📊 Relatórios & Análise
+- ✅ Histórico diário de consumo
+- ✅ Gráficos simplificados
+- ✅ Relatórios completos em PDF
 
-## 👤 Usuários
-- Cadastro de usuário  
-- Login e autenticação com JWT  
-- Consulta de dados do usuário  
+## 🚀 Vamos lá?
 
-## 🧯 Cilindros (Gás)
-- Cadastro de cilindro por usuário  
-- Atualização do peso atual  
-- Consulta de cilindros do usuário  
-- Registro automático de consumo enviado pelo sensor  
+### Pré-requisitos
+- Node.js 18+
+- PostgreSQL 14+
+- npm ou yarn
 
-## ⚡ Consumo
-- Receber leituras do sensor  
-- Calcular percentual restante de gás  
-- Registrar histórico de consumo  
-- Expor histórico para o usuário via API  
+### Instalação
+```bash
+# Clone o repositório
+git clone https://github.com/WirllySilva/bugbusters-gas-api
+cd bugbusters-gas-api
 
-## 🚨 Alertas
-- Gerar alertas automáticos:  
-  - ⚠️ 20% → Alerta amarelo  
-  - 🔥 5% → Alerta vermelho   
+# Instale dependências
+npm install
 
-## 🛠 Sensor Simulado
-- Classe `FakeSensor` que:
-  - Simula o consumo real de gás  
-  - Envia leituras automáticas em intervalo configurado  
-- Agendamento automático com `node-cron`
+# Configure ambiente
+cp .env.example .env
+# Edite .env com suas credenciais
 
-## 🏪 Fornecedores (Gas Providers)
-Funcionalidade incluída no projeto:
+# Configure o banco
+npx prisma migrate dev --name init
+npx prisma generate
 
-- Cadastro de fornecedores com CNPJ  
-- Endereço e dados de contato  
-- Listagem de fornecedores  
-- Filtro por cidade ou bairro  
-- Endpoint para solicitar compra de GLP ao fornecedor  
+# Inicie o servidor
+npm run dev

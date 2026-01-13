@@ -99,7 +99,7 @@ Time and Action
 
 ## 8. Use Case Diagram (portuguese)
 
-![FakeSensor Use case diagram](/documentation/images/fakesensor-usecase-diagram.png)
+![FakeSensor Use case diagram](/documentation/diagrams/fakesensor-usecase-diagram.png)
 
 ## 09. PostMan test - POST (/sensor-readings)
 
