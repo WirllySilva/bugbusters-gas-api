@@ -68,3 +68,11 @@ npx prisma generate
 
 # Inicie o servidor
 npm run dev
+```
+
+### Variáveis de Ambiente (.env)
+```bash
+DATABASE_URL="postgresql://user:password@localhost:5432/gas_control"
+WHATSAPP_API_KEY="sua-chave-whatsapp"
+PORT=3000
+```

@@ -50,3 +50,6 @@ Funcionalidade incluída no projeto:
 - Listagem de fornecedores  
 - Filtro por cidade ou bairro  
 - Endpoint para solicitar compra de GLP ao fornecedor  
+
+
+## Variáveis de Ambiente (.env)
