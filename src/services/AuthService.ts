@@ -5,14 +5,14 @@ import { generateOTP, sendNotification } from "../utils";
 const OTP_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 
 export class AuthService {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: PrismaClient) { }
 
   async sendLoginOtp(phone: string, expectedRole?: role) {
     const user = await this.prisma.user.findUnique({ where: { phone } });
     if (!user || user.deleted_at) {
-        throw new Error("Usuário não cadastrado");
+      throw new Error("Usuário não cadastrado");
     }
-    
+
     // Login não cadastra usuário
     if (!user) {
       throw new Error("Usuário não cadastrado");
@@ -44,7 +44,7 @@ export class AuthService {
   async verifyLoginOtp(phone: string, code: string) {
     const otpRecord = await this.prisma.otp_code.findUnique({ where: { phone } });
 
-    
+
     if (otpRecord?.otp_code !== code) {
       throw new Error("Código inválido");
     }
@@ -58,8 +58,9 @@ export class AuthService {
     if (!user) throw new Error("Usuário não encontrado");
 
     // marca verificado
+    let verifiedUser = user;
     if (!user.is_verified) {
-      await this.prisma.user.update({
+      verifiedUser = await this.prisma.user.update({
         where: { phone },
         data: { is_verified: true },
       });
@@ -76,6 +77,107 @@ export class AuthService {
 
     await this.prisma.otp_code.delete({ where: { phone } });
 
+    const needsProfileCompletion = !verifiedUser.name;
+
+    return { token, user: verifiedUser, needsProfileCompletion };
+  }
+
+  async sendRegisterOtp(phone: string, userRole: role) {
+    const existing = await this.prisma.user.findUnique({ where: { phone } });
+    if (existing && !existing.deleted_at) {
+      throw new Error("Telefone já cadastrado");
+    }
+
+    const otpCode = generateOTP();
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS);
+
+    await this.prisma.otp_code.upsert({
+      where: { phone },
+      update: { otp_code: otpCode, expires_at: expiresAt },
+      create: { phone, otp_code: otpCode, expires_at: expiresAt },
+    });
+
+    await sendNotification(phone, `Seu código é: ${otpCode}`);
+
+    return { otpCode };
+  }
+
+  async verifyRegisterOtp(phone: string, code: string, userRole: role) {
+    const otpRecord = await this.prisma.otp_code.findUnique({ where: { phone } });
+
+    if (otpRecord?.otp_code !== code) {
+      throw new Error("Código inválido");
+    }
+
+    if (new Date() > otpRecord.expires_at) {
+      await this.prisma.otp_code.delete({ where: { phone } });
+      throw new Error("Código expirado");
+    }
+
+    const existing = await this.prisma.user.findUnique({ where: { phone } });
+    if (existing && !existing.deleted_at) {
+      // alguém cadastrou nesse meio tempo
+      await this.prisma.otp_code.delete({ where: { phone } });
+      throw new Error("Telefone já cadastrado");
+    }
+
+    // cria um usuário agora e marca como verificado
+    const user = await this.prisma.user.upsert({
+      where: { phone },
+      update: {
+        role: userRole,
+        is_verified: true,
+        deleted_at: null, // reativa se estava deletado
+      },
+      create: {
+        phone,
+        role: userRole,
+        is_verified: true,
+      },
+    });
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new Error("JWT_SECRET não configurado");
+
+    const token = jwt.sign(
+      { user_id: user.user_id, role: user.role, phone: user.phone },
+      secret,
+      { expiresIn: "1d" }
+    );
+
+    await this.prisma.otp_code.delete({ where: { phone } });
+
     return { token, user };
   }
+
+  async completeProfile(user_id: string, data: { name: string; email?: string; address?: any }) {
+    const user = await this.prisma.user.update({
+      where: { user_id },
+      data: {
+        name: data.name,
+        email: data.email ?? undefined,
+      },
+    });
+
+    if (data.address) {
+      await this.prisma.address.create({
+        data: {
+          user_id: user.user_id,
+          street: data.address.street,
+          number: data.address.number,
+          neighborhood: data.address.neighborhood,
+          city: data.address.city,
+          state: data.address.state,
+          zip_code: data.address.zip_code,
+          latitude: data.address.latitude,
+          longitude: data.address.longitude,
+          label: data.address.label,
+          is_default: data.address.is_default ?? true,
+        },
+      });
+    }
+
+    return { user };
+  }
 }
+
