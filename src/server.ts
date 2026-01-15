@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { PrismaClient } from '@prisma/client'; 
-import authRoutes from "./routes/index"; 
+import authRoutes from "./routes/auth.routes";
 import consumptionRoutes from "./routes/consumption.routes";
 import { startFakeSensor } from "./fake-sensor";
 
