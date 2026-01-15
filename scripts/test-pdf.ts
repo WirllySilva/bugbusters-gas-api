@@ -10,7 +10,7 @@ async function main() {
       month: "2025-05",
       total_used_kg: 12.8,
       days: [
-        { day: new Date("2025-05-01T00:00:00.000Z"), used_kg: 1.0 },
+        { day: new Date("2025-05-01T00:00:00.000Z"), used_kg: 1 },
         { day: new Date("2025-05-02T00:00:00.000Z"), used_kg: 0.5 },
         { day: new Date("2025-05-03T00:00:00.000Z"), used_kg: 0.75 },
       ],
