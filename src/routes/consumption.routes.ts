@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { ConsumptionController } from "../controllers/ConsumptionController";
+import { ConsumptionController } from "../controllers";
 
 const router = Router();
 const controller = new ConsumptionController();

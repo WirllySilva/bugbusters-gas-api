@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { PrismaClient } from "@prisma/client";
-import { createAuthControllers } from "../controllers/AuthController";
+import { createAuthControllers } from "../controllers";
 
 export default function authRoutes(prisma: PrismaClient) {
   const router = Router();
