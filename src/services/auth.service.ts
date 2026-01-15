@@ -11,7 +11,7 @@ export class AuthService {
     constructor(private readonly prisma: PrismaClient) { }
 
     async sendOtpService(phone: string, role: role) {
-        let user = await this.prisma.user.findUnique({ where: { phone } });
+        const user = await this.prisma.user.findUnique({ where: { phone } });
 
         // Prefer nullish coalescing assignment instead of if (!user) ...
         if (!user) {
