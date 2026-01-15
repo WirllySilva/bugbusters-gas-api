@@ -1,6 +1,7 @@
 import type { PrismaClient, role } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import { generateOTP, sendNotification } from "../utils";
+import { CompleteProfileDTO } from "../dtos/auth/CompleteProfileDTO";
 
 const OTP_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -82,7 +83,7 @@ export class AuthService {
     return { token, user: verifiedUser, needsProfileCompletion };
   }
 
-  async sendRegisterOtp(phone: string, userRole: role) {
+  async sendRegisterOtp(phone: string) {
     const existing = await this.prisma.user.findUnique({ where: { phone } });
     if (existing && !existing.deleted_at) {
       throw new Error("Telefone já cadastrado");
@@ -150,7 +151,7 @@ export class AuthService {
     return { token, user };
   }
 
-  async completeProfile(user_id: string, data: { name: string; email?: string; address?: any }) {
+  async completeProfile(user_id: string, data: CompleteProfileDTO) {
     const user = await this.prisma.user.update({
       where: { user_id },
       data: {

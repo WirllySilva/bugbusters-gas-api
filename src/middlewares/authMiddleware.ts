@@ -7,6 +7,8 @@ export interface AuthPayload {
   phone: string;
 }
 
+type AuthedRequest = Request & { auth?: AuthPayload };
+
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   const header = req.headers.authorization;
   if (!header?.startsWith("Bearer ")) {
@@ -16,11 +18,12 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   const token = header.slice("Bearer ".length);
 
   const secret = process.env.JWT_SECRET;
+  
   if (!secret) return res.status(500).json({ message: "JWT_SECRET não configurado" });
 
   try {
     const payload = jwt.verify(token, secret) as AuthPayload;
-    (req as any).auth = payload;
+    (req as AuthedRequest).auth = payload;;
     return next();
   } catch {
     return res.status(401).json({ message: "Token inválido" });

@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import type { PrismaClient } from "@prisma/client";
+import type { AuthPayload } from "../middlewares/authMiddleware";
 
 import type { CreateLoginOtpDTO } from "../dtos/auth/CreateLoginOtpDTO";
 import type { VerifyLoginOtpDTO } from "../dtos/auth/VerifyLoginOtpDTO";
@@ -7,6 +8,8 @@ import { AuthService } from "../services/AuthService";
 import { CompleteProfileDTO } from "../dtos/auth/CompleteProfileDTO";
 import { CreateRegisterOtpDTO } from "../dtos/auth/CreateRegisterOtpDTO";
 import { VerifyRegisterOtpDTO } from "../dtos/auth/VerifyRegisterOtpDTO";
+
+type AuthedRequest = Request & { auth?: AuthPayload };
 
 export function createAuthControllers(prisma: PrismaClient) {
   const authService = new AuthService(prisma);
@@ -84,7 +87,7 @@ export function createAuthControllers(prisma: PrismaClient) {
         return res.status(400).json({ message: "Telefone e Role são obrigatórios." });
       }
 
-      const result = await authService.sendRegisterOtp(phone, role);
+      const result = await authService.sendRegisterOtp(phone);
 
       return res.status(200).json({
         message: "Código OTP enviado com sucesso.",
@@ -141,8 +144,7 @@ export function createAuthControllers(prisma: PrismaClient) {
         return res.status(400).json({ message: "Nome é obrigatório." });
       }
 
-      const auth = (req as any).auth as { user_id?: string } | undefined;
-      const userId = auth?.user_id;
+      const userId = (req as AuthedRequest).auth?.user_id;
 
       if (!userId) {
         return res.status(401).json({ message: "Token inválido ou ausente." });
