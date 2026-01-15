@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node --project tsconfig.json src/server.ts",
+    "dev": "ts-node --files --project tsconfig.json src/server.ts",
     "build": "tsc",
     "lint": "eslint . --ext .ts"
   },

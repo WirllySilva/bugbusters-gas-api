@@ -70,6 +70,9 @@ model user {
   orders_as_client   order[] @relation("client_orders")
   orders_as_supplier order[] @relation("supplier_orders")
   supplier_info      supplier_info?
+  consumption_current consumption_current?
+  consumption_hourly  consumption_hourly[]
+  consumption_daily   consumption_daily[]
 
   @@index([phone])
 }
@@ -113,12 +116,13 @@ model address {
 }
 
 // ==========================
-//  SENSOR READING
+//  SENSOR READING AND 
+//  CONSUMPTION HISTORY
 // ==========================
 
 model consumption_event {
   id         String   @id @default(uuid())
-  user_id    String
+  user_id    String   
   weight_kg  Float
   percent    Float?
   event      ConsumptionEventType
@@ -131,7 +135,7 @@ model consumption_event {
 
 model consumption_current {
   id          Int       @id @default(autoincrement())
-  user_id     String    
+  user_id     String    @unique
   weight_kg   Float
   percent     Float
   updated_at  DateTime  @updatedAt
@@ -142,8 +146,8 @@ model consumption_current {
 }
 
 model consumption_hourly {
-  id        Int     @id @default(autoincrement())
-  user_id   String
+  id        Int       @id @default(autoincrement())
+  user_id   String    
   hour      DateTime
   used_kg   Float
 
@@ -153,8 +157,8 @@ model consumption_hourly {
 }
 
 model consumption_daily {
-  id        Int     @id @default(autoincrement())
-  user_id   String
+  id        Int       @id @default(autoincrement())
+  user_id   String    
   day       DateTime
   used_kg   Float
 
@@ -163,9 +167,6 @@ model consumption_daily {
   @@index([user_id])
 }
 
-// ==========================
-//  CONSUMPTION HISTORY
-// ==========================
 
 model consumption_history {
   id               String   @id @default(uuid())
