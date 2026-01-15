@@ -23,7 +23,9 @@ async function main() {
   console.log("PDF gerado em: tmp/consumption-2025-05.pdf");
 }
 
-main().catch((e) => {
+try {
+  await main();
+} catch (e) {
   console.error(e);
   process.exit(1);
-});
+}

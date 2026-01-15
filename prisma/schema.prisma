@@ -37,6 +37,14 @@ enum type {
   SENSOR_OFFLINE
 }
 
+enum ConsumptionEventType {
+  SIGNIFICANT_DROP
+  LOW_LEVEL
+  CRITICAL_LEVEL
+  CYLINDER_REPLACED
+  DAILY_BASELINE
+}
+
 // ==========================
 //  USER
 // ==========================
@@ -102,8 +110,6 @@ model address {
   // Relations
   user   user   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   orders order[]
-
-  @@index([user_id])
 }
 
 // ==========================
@@ -116,7 +122,7 @@ model consumption_event {
   weight_kg  Float
   percent    Float?
   event      ConsumptionEventType
-  created_at DateTime @default(now())
+  created_at DateTime @updatedAt
 
   user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
@@ -125,10 +131,14 @@ model consumption_event {
 
 model consumption_current {
   id          Int       @id @default(autoincrement())
-  user_id     String    @unique
+  user_id     String    
   weight_kg   Float
   percent     Float
-  updated_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
 }
 
 model consumption_hourly {
@@ -136,6 +146,10 @@ model consumption_hourly {
   user_id   String
   hour      DateTime
   used_kg   Float
+
+  user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
 }
 
 model consumption_daily {
@@ -143,14 +157,10 @@ model consumption_daily {
   user_id   String
   day       DateTime
   used_kg   Float
-}
 
-enum ConsumptionEventType {
-  SIGNIFICANT_DROP
-  LOW_LEVEL
-  CRITICAL_LEVEL
-  CYLINDER_REPLACED
-  DAILY_BASELINE
+  user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
 }
 
 // ==========================
