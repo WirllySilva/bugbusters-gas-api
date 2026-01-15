@@ -13,7 +13,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(consumptionRoutes);
+
+
+app.use("/api", consumptionRoutes);
 
 // Passa o cliente Prisma para as rotas:
 app.use("/api", authRoutes(prisma)); 

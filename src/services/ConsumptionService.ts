@@ -3,11 +3,29 @@ import { CreatSensorReadingDTO } from "../dtos/CreatSensorReadingDTO";
 import { ConsumptionEventRepository } from "../repositories/ConsumptionEventRepository";
 import { ConsumptionEventType } from "@prisma/client";
 import { ConsumptionCurrentRepository } from "../repositories/ConsumptionCurrentRepository";
+import { ConsumptionRepository } from "../repositories/ConsumptionRepository";
+
+function startOfDayUTC(date: Date) {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0));
+}
+
+function endOfDayUTC(date: Date) {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 1, 0, 0, 0));
+}
+
+function startOfMonthUTC(year: number, month: number) {
+    return new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
+}
+
+function startOfNextMonthUTC(year: number, month: number) {
+    return new Date(Date.UTC(year, month, 1, 0, 0, 0))
+}
 
 export class ConsumptionService {
     constructor(
         private readonly eventRepository: ConsumptionEventRepository, 
-        private readonly currentRepository: ConsumptionCurrentRepository){
+        private readonly currentRepository: ConsumptionCurrentRepository,
+        private readonly repository: ConsumptionRepository) {
     }
         
     // esse método assinc vai registrar um evento de consumo.
@@ -84,6 +102,53 @@ export class ConsumptionService {
         if(this.isNewDay(lastDaily?.day)) {
             await this.currentRepository.saveDaily(data.user_id, used);
         }
+    }
+
+    async getDailyHistory(usedId: string, dateStr: string, withDetails = true) {
+        const date = new Date(`${dateStr}T00:00:00.000Z`);
+        if(Number.isNaN(date.getTime())) {
+            throw new TypeError("Invalid date. Use YYYY-MM-DD");
+        }
+
+        const start = startOfDayUTC(date);
+        const end = endOfDayUTC(date);
+
+        const rows = await this.repository.listHourlyByDay(usedId, start, end);
+        const total = rows.reduce((acc, r) => acc + Number(r.used_kg || 0), 0);
+
+        return {
+            date: dateStr,
+            total_used_kg: Number(total.toFixed(3)),
+            ...(withDetails
+                ? {
+                    hours: rows.map((r) => ({
+                        hour: r.hour,
+                        used_kg: r.used_kg,
+                    })),
+                }
+            : {}),
+        };
+    }
+
+    async getMonthlyHistory(userId: string, monthStr: string) {
+        if(!/^\d{4}-\d{2}$/.test(monthStr)) throw new Error("Invalid month");
+
+        const [y, m] = monthStr.split("-").map(Number);
+        const start = startOfMonthUTC(y, m);
+        const end = startOfNextMonthUTC(y, m);
+
+        const days = await this.repository.listDailyByMonth(userId, start, end);
+
+        const total = days.reduce((acc, d) => acc + Number(d.used_kg || 0), 0);
+
+        return {
+            month: monthStr,
+            total_used_kg: Number(total.toFixed(3)),
+            days: days.map((d) => ({
+                day: d.day,
+                used_kg: d.used_kg,
+            })),
+        };
     }
 
 

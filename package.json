@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "dotenv -e .env -- ts-node src/server.ts",
+    "dev": "ts-node --project tsconfig.json src/server.ts",
     "build": "tsc",
     "lint": "eslint . --ext .ts"
   },
@@ -29,6 +29,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.3",
     "node-cron": "^4.2.1",
+    "pdfkit": "^0.17.2",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
@@ -37,6 +38,7 @@
     "@types/express": "^5.0.5",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.10.1",
+    "@types/pdfkit": "^0.17.4",
     "dotenv-cli": "^11.0.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
