@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import authRoutes from "./routes/auth.routes";
 import consumptionRoutes from "./routes/consumption.routes";
 import { startFakeSensor } from "./fake-sensor";
+import userRoutes from "./routes/user.routes";
 
 
 // INICIALIZAÇÃO DO PRISMA: Acontece APÓS o dotenv.config()
@@ -19,6 +20,7 @@ app.use("/api", consumptionRoutes);
 
 // Passa o cliente Prisma para as rotas:
 app.use("/api", authRoutes(prisma)); 
+app.use("/api", userRoutes(prisma));
 
 app.get("/", (req, res) => {
     res.send("BugBusters Gas API is running!");

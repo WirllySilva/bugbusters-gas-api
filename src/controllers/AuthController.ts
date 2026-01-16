@@ -8,13 +8,14 @@ import { AuthService } from "../services/AuthService";
 import { CompleteProfileDTO } from "../dtos/auth/CompleteProfileDTO";
 import { CreateRegisterOtpDTO } from "../dtos/auth/CreateRegisterOtpDTO";
 import { VerifyRegisterOtpDTO } from "../dtos/auth/VerifyRegisterOtpDTO";
+import { CompleteSupplierInfoDTO } from "../dtos/auth/CompleteSupplierInfoDTO";
 
 type AuthedRequest = Request & { auth?: AuthPayload };
 
 export function createAuthControllers(prisma: PrismaClient) {
   const authService = new AuthService(prisma);
-  
-// *** LOGIN ***
+
+  // *** LOGIN ***
   const sendLoginOtp = async (req: Request, res: Response) => {
     try {
       const { phone, role } = req.body as CreateLoginOtpDTO;
@@ -60,6 +61,7 @@ export function createAuthControllers(prisma: PrismaClient) {
         token: result.token,
         user: result.user,
         needs_profile_completion: result.needsProfileCompletion,
+        needs_supplier_info_completion: result.needsSupplierInfoCompletion,
       });
     } catch (error) {
       const err = error as Error;
@@ -163,5 +165,36 @@ export function createAuthControllers(prisma: PrismaClient) {
     }
   };
 
-  return { sendLoginOtp, verifyLoginOtp, sendRegisterOtp, verifyRegisterOtp, completeProfile };
+  const completeSupplierInfo = async (req: Request, res: Response) => {
+    try {
+      const body = req.body as CompleteSupplierInfoDTO;
+
+      const userId = (req as AuthedRequest).auth?.user_id;
+      if (!userId) {
+        return res.status(401).json({ message: "Token inválido ou ausente." });
+      }
+
+      const result = await authService.completeSupplierInfo(userId, body);
+
+      return res.status(200).json({
+        message: "Informações do fornecedor atualizadas com sucesso.",
+        supplier_info: result.supplierInfo,
+      });
+    } catch (error) {
+      const err = error as Error;
+
+      if (err.message === "Usuário não encontrado") {
+        return res.status(404).json({ message: err.message });
+      }
+
+      if (err.message === "Apenas fornecedor pode completar supplier_info") {
+        return res.status(403).json({ message: err.message });
+      }
+
+      console.error("Erro no controller completeSupplierInfo:", err);
+      return res.status(500).json({ error: "Erro ao completar dados do fornecedor." });
+    }
+  };
+
+  return { sendLoginOtp, verifyLoginOtp, sendRegisterOtp, verifyRegisterOtp, completeProfile, completeSupplierInfo };
 }
