@@ -1,7 +1,8 @@
-import type { PrismaClient, role } from "@prisma/client";
+import { PrismaClient, role } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import { generateOTP, sendNotification } from "../utils";
 import { CompleteProfileDTO } from "../dtos/auth/CompleteProfileDTO";
+import { CompleteSupplierInfoDTO } from "../dtos/auth/CompleteSupplierInfoDTO";
 
 const OTP_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -71,7 +72,7 @@ export class AuthService {
     if (!secret) throw new Error("JWT_SECRET não configurado");
 
     const token = jwt.sign(
-      { user_id: user.user_id, role: user.role, phone: user.phone },
+      { user_id: verifiedUser.user_id, role: verifiedUser.role, phone: verifiedUser.phone },
       secret,
       { expiresIn: "1d" }
     );
@@ -80,7 +81,15 @@ export class AuthService {
 
     const needsProfileCompletion = !verifiedUser.name;
 
-    return { token, user: verifiedUser, needsProfileCompletion };
+    let needsSupplierInfoCompletion = false;
+    if(verifiedUser.role === role.SUPPLIER) {
+      const supplierInfo  = await this.prisma.supplier_info.findUnique({
+        where:{ user_id: verifiedUser.user_id},
+      });
+      needsSupplierInfoCompletion = !supplierInfo;
+    }
+
+    return { token, user: verifiedUser, needsProfileCompletion, needsSupplierInfoCompletion };
   }
 
   async sendRegisterOtp(phone: string) {
@@ -179,6 +188,38 @@ export class AuthService {
     }
 
     return { user };
+  }
+
+  async completeSupplierInfo(user_id: string, data: CompleteSupplierInfoDTO) {
+    const user = await this.prisma.user.findUnique({ where: { user_id } });
+    if (!user) throw new Error("Usuário não encontrado");
+
+    if (user.role !== role.SUPPLIER) {
+      throw new Error("Apenas fornecedor pode completar supplier_info");
+    }
+
+    const supplierInfo = await this.prisma.supplier_info.upsert({
+      where: { user_id },
+      update: {
+        payment_methods: data.payment_methods ?? undefined,
+        open_time: data.open_time ?? undefined,
+        close_time: data.close_time ?? undefined,
+        open_days: data.open_days ?? undefined,
+        is_active: data.is_active ?? undefined,
+        deliveryTimes: data.deliveryTimes ?? undefined,
+      },
+      create: {
+        user_id,
+        payment_methods: data.payment_methods ?? undefined,
+        open_time: data.open_time ?? undefined,
+        close_time: data.close_time ?? undefined,
+        open_days: data.open_days ?? undefined,
+        is_active: data.is_active ?? true,
+        deliveryTimes: data.deliveryTimes ?? undefined,
+      },
+    });
+
+    return { supplierInfo };
   }
 }
 
