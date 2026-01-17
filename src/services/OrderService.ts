@@ -3,8 +3,6 @@ import { OrderRepository } from "../repositories/OrderRepository";
 import { CreateOrderDTO } from "../dtos/order/CreateOrderDTO";
 import { AcceptOrderDTO } from "../dtos/order/AcceptOrderDTO";
 
-type Role = "CLIENT" | "SUPPLIER" | "ADMIN";
-
 export class OrderService {
   private readonly orderRepository = new OrderRepository();
 
@@ -105,7 +103,7 @@ export class OrderService {
     order_id: string,
     dto: AcceptOrderDTO
   ) {
-    // 1️⃣ Só SUPPLIER
+    // Só SUPPLIER
     if (auth.role !== "SUPPLIER") {
       return {
         status: 403,
