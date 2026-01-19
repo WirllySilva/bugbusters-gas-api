@@ -106,4 +106,18 @@ WhatsApp Integration - Notificações diretas
 
 PDF Export - Histórico offline
 
+## Base URL
+- Local: `http://localhost:3000`
+- Prefix: `/api`
+
+Exemplo:
+- `GET http://localhost:3000/api/orders`
+
+## Authentication
+As rotas protegidas exigem JWT no header:
+
+- Header: `Authorization: Bearer <JWT_TOKEN>`
+
+O token identifica o usuário logado e seu papel (`role`), então o backend define permissões e o `client_id` do pedido a partir do token.
+
 ---

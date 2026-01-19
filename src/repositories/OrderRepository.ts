@@ -38,4 +38,35 @@ export class OrderRepository {
       },
     });
   }
+
+  async list(params: {
+    where: {
+      client_id?: string;
+      supplier_id?: string;
+      status?: "PENDING" | "ACCEPTED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+    };
+    take?: number;
+    skip?: number;
+  }) {
+    return prisma.order.findMany({
+      where: params.where,
+      orderBy: { created_at: "desc" },
+      take: params.take,
+      skip: params.skip,
+    });
+  }
+
+  async updateStatus(params: {
+    order_id: string;
+    status: "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+    delivered_at?: Date | null;
+  }) {
+    return prisma.order.update({
+      where: { order_id: params.order_id },
+      data: {
+        status: params.status,
+        delivered_at: params.delivered_at === undefined ? undefined : params.delivered_at,
+      },
+    });
+  }
 }

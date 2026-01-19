@@ -11,4 +11,13 @@ orderRoutes.post("/orders", requireAuth, controller.create);
 // Aceitar pedido como fornecedor
 orderRoutes.patch("/orders/:order_id/accept", requireAuth, controller.accept);
 
+// Listar pedidos client ou supplier
+orderRoutes.get("/orders", requireAuth, controller.list);
+
+// Fornecedor atualiza status do pedido
+orderRoutes.patch("/orders/:order_id/status", requireAuth, controller.updateStatus);
+
+// Cancelar pedido
+orderRoutes.patch("/orders/:order_id/cancel", requireAuth, controller.cancel);
+
 export default orderRoutes;
