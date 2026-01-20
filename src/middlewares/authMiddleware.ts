@@ -5,6 +5,7 @@ export interface AuthPayload {
   user_id: string;
   role: string;
   phone: string;
+  name?: string;
 }
 
 type AuthedRequest = Request & { auth?: AuthPayload };

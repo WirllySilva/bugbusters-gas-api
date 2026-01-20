@@ -72,7 +72,7 @@ export class AuthService {
     if (!secret) throw new Error("JWT_SECRET não configurado");
 
     const token = jwt.sign(
-      { user_id: verifiedUser.user_id, role: verifiedUser.role, phone: verifiedUser.phone },
+      { user_id: verifiedUser.user_id, role: verifiedUser.role, phone: verifiedUser.phone, name: verifiedUser.name ?? undefined, },
       secret,
       { expiresIn: "1d" }
     );
@@ -150,7 +150,7 @@ export class AuthService {
     if (!secret) throw new Error("JWT_SECRET não configurado");
 
     const token = jwt.sign(
-      { user_id: user.user_id, role: user.role, phone: user.phone },
+      { user_id: user.user_id, role: user.role, phone: user.phone, name: user.name ?? undefined, },
       secret,
       { expiresIn: "1d" }
     );

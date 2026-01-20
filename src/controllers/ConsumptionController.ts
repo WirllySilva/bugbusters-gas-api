@@ -4,6 +4,9 @@ import { ConsumptionService } from "../services/ConsumptionService";
 import { ConsumptionCurrentRepository } from "../repositories/ConsumptionCurrentRepository";
 import { ConsumptionRepository } from "../repositories/ConsumptionRepository";
 import { PdfReportService } from "../services/PdfReportService";
+import { AuthPayload } from "../middlewares/authMiddleware";
+
+type AuthedRequest = Request & {auth?: AuthPayload};
 
 export class ConsumptionController {
     private readonly service = new ConsumptionService(
@@ -14,8 +17,8 @@ export class ConsumptionController {
     
     private readonly pdf = new PdfReportService();
 
-    async history(req: Request, res: Response) {
-        const userId = req.user?.id;
+    async history(req: AuthedRequest, res: Response) {
+        const userId = req.auth?.user_id;
         if(!userId) {
             return res.status(401).json({ message: "Unauthorized "});
         }
@@ -35,8 +38,8 @@ export class ConsumptionController {
         }
     }
 
-    async monthly(req: Request, res: Response) {
-        const userId = req.user?.id;
+    async monthly(req: AuthedRequest, res: Response) {
+        const userId = req.auth?.user_id;
         if(!userId) {
             return res.status(401).json({ message: "Unauthorized"});
         }
@@ -51,8 +54,8 @@ export class ConsumptionController {
         }
     }
 
-    async monthlyPdf(req: Request, res: Response) {
-        const userId = req.user?.id;
+    async monthlyPdf(req: AuthedRequest, res: Response) {
+        const userId = req.auth?.user_id;
         if(!userId) {
             return res.status(401).json({ message: "Unauthorized" });
         }
@@ -62,7 +65,7 @@ export class ConsumptionController {
         try {
             const report = await this.service.getMonthlyHistory(userId, month);
             const pdfBuffer = await this.pdf.generateMonthlyConsumptionPdf({
-                userName: req.user?.name,
+                userName: req.auth?.name ?? req.auth?.phone,
                 report,
             });
             
@@ -74,7 +77,7 @@ export class ConsumptionController {
         }
     }
 
-    async create(req: Request, res: Response) {
+    async create(req: AuthedRequest, res: Response) {
         const data = req.body;
 
         await this.service.processReading(data);
