@@ -93,22 +93,25 @@ export class ConsumptionService {
             return;
         }
 
-        const diffUp = data.weight_kg - current.weight_kg;
+        if (data.weight_kg > current.weight_kg) {
+            const diffUp = data.weight_kg - current.weight_kg;
 
-        if (diffUp > 1) {
+            if (diffUp > 1) {
+                await this.currentRepository.updateCurrent(data);
+
+                await this.eventRepository.save({
+                    user_id: data.user_id,
+                    weight_kg: data.weight_kg,
+                    percent: data.percent,
+                    event: "CYLINDER_REPLACED"
+                });
+
+                console.log(`[SERVICE] Cylinder replaced detected for user ${data.user_id}`);
+                return;
+            }
             await this.currentRepository.updateCurrent(data);
-
-            await this.eventRepository.save({
-                user_id: data.user_id,
-                weight_kg: data.weight_kg,
-                percent: data.percent,
-                event: "CYLINDER_REPLACED"
-            });
-
-            console.log(`[SERVICE] Cylinder replaced detected for user ${data.user_id}`);
             return;
         }
-
         const used = current.weight_kg - data.weight_kg;
         if (used <= 0) {
             return;
