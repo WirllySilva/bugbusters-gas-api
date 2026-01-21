@@ -21,18 +21,37 @@ function startOfNextMonthUTC(year: number, month: number) {
     return new Date(Date.UTC(year, month, 1, 0, 0, 0))
 }
 
+function hourBucketUTC(date: Date) {
+    return new Date(Date.UTC(
+        date.getUTCFullYear(),
+        date.getUTCMonth(),
+        date.getUTCDate(),
+        date.getUTCHours(),
+        0, 0, 0
+    ));
+}
+
+function dayBucketUTC(date: Date) {
+    return new Date(Date.UTC(
+        date.getUTCFullYear(),
+        date.getUTCMonth(),
+        date.getUTCDate(),
+        0, 0, 0, 0
+    ));
+}
+
 export class ConsumptionService {
     constructor(
-        private readonly eventRepository: ConsumptionEventRepository, 
+        private readonly eventRepository: ConsumptionEventRepository,
         private readonly currentRepository: ConsumptionCurrentRepository,
         private readonly repository: ConsumptionRepository) {
     }
-        
+
     // esse método assinc vai registrar um evento de consumo.
     async registerEvent(data: CreatSensorReadingDTO) {
         const last = await this.eventRepository.findLastByUser(data.user_id);
 
-        let event: ConsumptionEventType | null = null;     
+        let event: ConsumptionEventType | null = null;
 
 
         // algumas condições da nossa regra de negócio.
@@ -50,6 +69,10 @@ export class ConsumptionService {
             return null;
         }
 
+        if (last?.event === event) {
+            return null;
+        }
+
         const payload: CreateConsumptionEventDTO = {
             ...data, event
         }
@@ -59,20 +82,20 @@ export class ConsumptionService {
 
     private isFirstReadingOfDay(date: Date): boolean {
         const now = new Date();
-        return(date.getDate() !== now.getDate() || date.getMonth() !== now.getMonth() || date.getFullYear() !== now.getFullYear());
+        return (date.getDate() !== now.getDate() || date.getMonth() !== now.getMonth() || date.getFullYear() !== now.getFullYear());
     }
 
     async processReading(data: CreatSensorReadingDTO) {
         const current = await this.currentRepository.getCurrent(data.user_id);
 
-        if(!current) {
+        if (!current) {
             await this.currentRepository.creatCurrent(data);
             return;
         }
 
-        const diff = data.weight_kg - current.weight_kg;
+        const diffUp = data.weight_kg - current.weight_kg;
 
-        if(diff > 1) {
+        if (diffUp > 1) {
             await this.currentRepository.updateCurrent(data);
 
             await this.eventRepository.save({
@@ -83,30 +106,28 @@ export class ConsumptionService {
             });
 
             console.log(`[SERVICE] Cylinder replaced detected for user ${data.user_id}`);
-        }
-
-        const used = current.weight_kg - data.weight_kg;
-        if(used <= 0) {
             return;
         }
 
+        const used = current.weight_kg - data.weight_kg;
+        if (used <= 0) {
+            return;
+        }
+
+        const now = new Date();
+        const hourBucket = hourBucketUTC(now);
+        const dayBucket = dayBucketUTC(now);
+
         await this.currentRepository.updateCurrent(data);
-
-        const lastHourly = await this.currentRepository.findLastHourly(data.user_id);
-        if(this.isNewHour(lastHourly?.hour)) {
-            await this.currentRepository.saveHourly(data.user_id, used);
-        }
+        await this.currentRepository.upsertHourly(data.user_id, hourBucket, used);
+        await this.currentRepository.upsertDaily(data.user_id, dayBucket, used);
 
 
-        const lastDaily = await this.currentRepository.findLastDaily(data.user_id);
-        if(this.isNewDay(lastDaily?.day)) {
-            await this.currentRepository.saveDaily(data.user_id, used);
-        }
     }
 
     async getDailyHistory(usedId: string, dateStr: string, withDetails = true) {
         const date = new Date(`${dateStr}T00:00:00.000Z`);
-        if(Number.isNaN(date.getTime())) {
+        if (Number.isNaN(date.getTime())) {
             throw new TypeError("Invalid date. Use YYYY-MM-DD");
         }
 
@@ -126,12 +147,12 @@ export class ConsumptionService {
                         used_kg: r.used_kg,
                     })),
                 }
-            : {}),
+                : {}),
         };
     }
 
     async getMonthlyHistory(userId: string, monthStr: string) {
-        if(!/^\d{4}-\d{2}$/.test(monthStr)) throw new Error("Invalid month");
+        if (!/^\d{4}-\d{2}$/.test(monthStr)) throw new Error("Invalid month");
 
         const [y, m] = monthStr.split("-").map(Number);
         const start = startOfMonthUTC(y, m);
@@ -153,19 +174,19 @@ export class ConsumptionService {
 
 
     private isNewHour(lastHour?: Date) {
-        if(!lastHour) {
+        if (!lastHour) {
             return true;
         }
 
         const now = new Date();
-        return(
+        return (
             now.getHours() !== lastHour.getHours() ||
             now.getDate() !== lastHour.getDate()
         );
     }
 
     private isNewDay(lastDay?: Date) {
-        if(!lastDay) {
+        if (!lastDay) {
             return true;
         }
 

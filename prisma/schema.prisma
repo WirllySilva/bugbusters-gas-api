@@ -64,7 +64,6 @@ model user {
   // Relations
   addresses          address[]
   consumption_event     consumption_event[]
-  consumption_history consumption_history[]
   cylinder_change    cylinder_change[]
   alerts             alert[]
   orders_as_client   order[] @relation("client_orders")
@@ -153,7 +152,8 @@ model consumption_hourly {
 
   user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
-  @@index([user_id])
+  @@unique([user_id, hour])
+  @@index([user_id, hour])
 }
 
 model consumption_daily {
@@ -164,22 +164,8 @@ model consumption_daily {
 
   user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
-  @@index([user_id])
-}
-
-
-model consumption_history {
-  id               String   @id @default(uuid())
-  user_id          String
-  date             DateTime @db.Date
-  consumption_daily Decimal?
-  min_percentage   Int?
-  max_percentage   Int?
-  created_at       DateTime @default(now())
-
-  user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-
-  @@index([user_id])
+  @@unique([user_id, day])
+  @@index([user_id, day])
 }
 
 // ==========================

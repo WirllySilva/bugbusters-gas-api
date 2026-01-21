@@ -30,7 +30,7 @@ export class FakeSensor {
     }
 
     //Consumo aleatório do gás, usando nosso metodo de gerador de cosumo.
-    private reduceWeight(): void { 
+    private reduceWeight(): void {
         const consumption = this.generateConsumption(); // Recebe o valor aleatório da nossa funçao generate
         this.currentWeight -= consumption;
 
@@ -70,7 +70,13 @@ export class FakeSensor {
                 weight_kg: reading.weight_kg,
                 percent: reading.percent,
                 created_at: reading.created_at
-            });
+            },
+                {
+                    headers: {
+                        "x-sensor-key": process.env.SENSOR_API_KEY ?? ""
+                    }
+                }
+            );
         } catch (error: unknown) {
             if (error instanceof Error) {
                 console.error("[FakeSensor] Error:", error.message);

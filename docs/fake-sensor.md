@@ -97,10 +97,45 @@ Time and Action
 * Supports academic demonstration
 
 
-## 8. Use Case Diagram (portuguese)
+
+## 8. Autenticação do Sensor (API Key)
+
+Para simular um dispositivo físico real, o FakeSensor não utiliza autenticação via JWT.
+
+Em vez disso, a API disponibiliza um mecanismo seguro de ingestão de dados que aceita duas formas de autenticação:
+
+- **JWT** válido – utilizado pelos usuários da aplicação.
+
+- **API Key do sensor** – utilizada por dispositivos ou simuladores de sensores.
+
+Esse comportamento é implementado por meio de um middleware personalizado chamado `sensorOrAuthMiddleware`.
+
+### Como funciona
+
+- O FakeSensor envia um header HTTP contendo a chave do sensor:
+```bash
+x-sensor-key: <SENSOR_API_KEY>
+```
+
+- Se a chave enviada for igual ao valor definido no arquivo .env, a requisição ignora a autenticação JWT.
+
+- Caso o header não exista ou seja inválido, a rota exige autenticação padrão via JWT.
+
+### Variável de ambiente
+```bash
+SENSOR_API_KEY=super-secret-key-123
+```
+
+### Comportamento do middleware (conceitual)
+
+- Se `x-sensor-key` for válido → requisição autorizada.
+
+- Caso contrário → autenticação JWT obrigatória.
+
+## 9. Use Case Diagram (portuguese)
 
 ![FakeSensor Use case diagram](/documentation/diagrams/fakesensor-usecase-diagram.png)
 
-## 09. PostMan test - POST (/sensor-readings)
+## 10. PostMan test - POST (/sensor-readings)
 
 ![PostmanTest](/documentation/images/postman-POSTsensor-readings.png)
