@@ -1,4 +1,3 @@
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -31,7 +30,7 @@ enum status {
   CANCELLED
 }
 
-enum type {
+enum AlertType {
   LEAK
   HIGH_CONSUMPTION
   SENSOR_OFFLINE
@@ -45,6 +44,17 @@ enum ConsumptionEventType {
   DAILY_BASELINE
 }
 
+enum NotificationChannel {
+  WHATSAPP
+  PUSH
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
 // ==========================
 //  USER
 // ==========================
@@ -53,25 +63,27 @@ model user {
   user_id     String    @id @default(uuid())
   role        role
   name        String?
-  phone       String     @unique
+  phone       String    @unique
   email       String?
-  is_verified Boolean    @default(false)
-  has_sensor  Boolean    @default(false)
-  created_at  DateTime   @default(now())
-  updated_at  DateTime   @updatedAt
+  is_verified Boolean   @default(false)
+  has_sensor  Boolean   @default(false)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
   deleted_at  DateTime?
 
   // Relations
-  addresses          address[]
-  consumption_event     consumption_event[]
-  cylinder_change    cylinder_change[]
-  alerts             alert[]
-  orders_as_client   order[] @relation("client_orders")
-  orders_as_supplier order[] @relation("supplier_orders")
-  supplier_info      supplier_info?
+  addresses           address[]
+  consumption_event   consumption_event[]
+  cylinder_change     cylinder_change[]
+  alerts              alert[]
+  orders_as_client    order[]              @relation("client_orders")
+  orders_as_supplier  order[]              @relation("supplier_orders")
+  supplier_info       supplier_info?
   consumption_current consumption_current?
   consumption_hourly  consumption_hourly[]
   consumption_daily   consumption_daily[]
+  notifications       notification[]
+  device_tokens       device_token[]
 
   @@index([phone])
 }
@@ -86,8 +98,6 @@ model otp_code {
   otp_code   String
   expires_at DateTime
   created_at DateTime @default(now())
-
-
 }
 
 // ==========================
@@ -106,11 +116,11 @@ model address {
   latitude     Decimal?
   longitude    Decimal?
   label        String?
-  is_default   Boolean   @default(false)
-  created_at   DateTime  @default(now())
+  is_default   Boolean  @default(false)
+  created_at   DateTime @default(now())
 
   // Relations
-  user   user   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user   user    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   orders order[]
 }
 
@@ -120,12 +130,12 @@ model address {
 // ==========================
 
 model consumption_event {
-  id         String   @id @default(uuid())
-  user_id    String   
+  id         String               @id @default(uuid())
+  user_id    String
   weight_kg  Float
   percent    Float?
   event      ConsumptionEventType
-  created_at DateTime @updatedAt
+  created_at DateTime             @default(now())
 
   user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
@@ -133,11 +143,11 @@ model consumption_event {
 }
 
 model consumption_current {
-  id          Int       @id @default(autoincrement())
-  user_id     String    @unique
-  weight_kg   Float
-  percent     Float
-  updated_at  DateTime  @updatedAt
+  id         Int      @id @default(autoincrement())
+  user_id    String   @unique
+  weight_kg  Float
+  percent    Float
+  updated_at DateTime @updatedAt
 
   user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
@@ -145,10 +155,10 @@ model consumption_current {
 }
 
 model consumption_hourly {
-  id        Int       @id @default(autoincrement())
-  user_id   String    
-  hour      DateTime
-  used_kg   Float
+  id      Int      @id @default(autoincrement())
+  user_id String
+  hour    DateTime
+  used_kg Float
 
   user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
@@ -157,10 +167,10 @@ model consumption_hourly {
 }
 
 model consumption_daily {
-  id        Int       @id @default(autoincrement())
-  user_id   String    
-  day       DateTime
-  used_kg   Float
+  id      Int      @id @default(autoincrement())
+  user_id String
+  day     DateTime
+  used_kg Float
 
   user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
@@ -187,21 +197,21 @@ model cylinder_change {
 // ==========================
 
 model order {
-  order_id     String      @id @default(uuid())
-  client_id    String
-  supplier_id  String
-  address_id   String?
+  order_id      String        @id @default(uuid())
+  client_id     String
+  supplier_id   String
+  address_id    String?
   delivery_type delivery_type
   status        status
   notes         String?
-  price         Decimal?    @db.Decimal(10,2)
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
+  price         Decimal?      @db.Decimal(10, 2)
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
   delivered_at  DateTime?
 
   // Relations
-  client   user   @relation("client_orders", fields: [client_id], references: [user_id], onDelete: Restrict)
-  supplier user   @relation("supplier_orders", fields: [supplier_id], references: [user_id], onDelete: Restrict)
+  client   user     @relation("client_orders", fields: [client_id], references: [user_id], onDelete: Restrict)
+  supplier user     @relation("supplier_orders", fields: [supplier_id], references: [user_id], onDelete: Restrict)
   address  address? @relation(fields: [address_id], references: [address_id])
 
   @@index([client_id])
@@ -214,12 +224,13 @@ model order {
 // ==========================
 
 model alert {
-  alert_id   String   @id @default(uuid())
+  alert_id   String    @id @default(uuid())
   user_id    String
-  type       type
+  type       AlertType
   message    String
-  handled    Boolean  @default(false)
-  created_at DateTime @default(now())
+  handled    Boolean   @default(false)
+  created_at DateTime  @default(now())
+  metadata   Json?
 
   user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
@@ -242,4 +253,40 @@ model supplier_info {
   created_at      DateTime @default(now())
 
   user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+}
+
+model notification {
+  notification_id String              @id @default(uuid())
+  user_id         String
+  channel         NotificationChannel
+  template        String?
+  title           String?
+  message         String
+  payload         Json?
+  status          NotificationStatus  @default(PENDING)
+  provider        String? // "mock", "z-api", "twilio", "fcm"
+  external_id     String?
+  error           String?
+  created_at      DateTime            @default(now())
+  sent_at         DateTime?
+
+  user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([status])
+  @@index([channel])
+}
+
+model device_token {
+  device_token_id String    @id @default(uuid())
+  user_id         String
+  token           String    @unique
+  platform        String // "android" | "ios" | "web"
+  enabled         Boolean   @default(true)
+  created_at      DateTime  @default(now())
+  last_seen_at    DateTime?
+
+  user user @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
 }

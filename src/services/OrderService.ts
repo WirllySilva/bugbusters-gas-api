@@ -5,11 +5,17 @@ import { AcceptOrderDTO } from "../dtos/order/AcceptOrderDTO";
 import { UpdateOrderStatusDTO } from "../dtos/order/UpdateOrderStatusDTO";
 import { ListOrdersQueryDTO } from "../dtos/order/ListOrdersQueryDTO";
 
+// ✅ ADD
+import { NotificationService } from "./NotificationService";
+
 type Role = "CLIENT" | "SUPPLIER" | "ADMIN";
 type Status = "PENDING" | "ACCEPTED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
 
 export class OrderService {
     private readonly orderRepository = new OrderRepository();
+
+    // ✅ ADD
+    private readonly notificationService = new NotificationService();
 
     async createOrder(
         auth: { user_id: string; role: string },
@@ -93,6 +99,19 @@ export class OrderService {
             notes: dto.notes,
         });
 
+        // ✅ ADD: notifica CLIENTE + FORNECEDOR (não altera retorno, não altera regra)
+        try {
+            await this.notificationService.notifyOrderCreated({
+                order_id: order.order_id,
+                client_id: order.client_id,
+                supplier_id: order.supplier_id,
+            });
+        } catch (err: unknown) {
+            // não quebra o fluxo do pedido
+            const msg = err instanceof Error ? err.message : String(err);
+            console.error(`[OrderService] notifyOrderCreated failed: ${msg}`);
+        }
+
         return {
             status: 201,
             body: {
@@ -158,6 +177,18 @@ export class OrderService {
             order_id,
             price: dto.price,
         });
+
+        // ✅ ADD: notifica CLIENTE que foi aceito
+        try {
+            await this.notificationService.notifyOrderStatusToClient({
+                order_id: updated.order_id,
+                client_id: updated.client_id,
+                status: updated.status as Status, // ACCEPTED
+            });
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            console.error(`[OrderService] notifyOrderStatusToClient(ACCEPTED) failed: ${msg}`);
+        }
 
         return {
             status: 200,
@@ -237,6 +268,18 @@ export class OrderService {
             delivered_at,
         });
 
+        // ✅ ADD: notifica CLIENTE (IN_TRANSIT / DELIVERED)
+        try {
+            await this.notificationService.notifyOrderStatusToClient({
+                order_id: updated.order_id,
+                client_id: updated.client_id,
+                status: updated.status as Status,
+            });
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            console.error(`[OrderService] notifyOrderStatusToClient(${next}) failed: ${msg}`);
+        }
+
         return {
             status: 200,
             body: { message: "Status atualizado com sucesso.", order: updated },
@@ -273,6 +316,18 @@ export class OrderService {
             order_id,
             status: "CANCELLED",
         });
+
+        // ✅ ADD: notifica CLIENTE (cancelado)
+        try {
+            await this.notificationService.notifyOrderStatusToClient({
+                order_id: updated.order_id,
+                client_id: updated.client_id,
+                status: updated.status as Status, // CANCELLED
+            });
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            console.error(`[OrderService] notifyOrderStatusToClient(CANCELLED) failed: ${msg}`);
+        }
 
         return {
             status: 200,

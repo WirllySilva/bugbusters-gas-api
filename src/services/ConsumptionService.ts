@@ -4,6 +4,7 @@ import { ConsumptionEventRepository } from "../repositories/ConsumptionEventRepo
 import { ConsumptionEventType } from "@prisma/client";
 import { ConsumptionCurrentRepository } from "../repositories/ConsumptionCurrentRepository";
 import { ConsumptionRepository } from "../repositories/ConsumptionRepository";
+import { AlertService } from "./AlertService";
 
 function startOfDayUTC(date: Date) {
     return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0));
@@ -41,10 +42,14 @@ function dayBucketUTC(date: Date) {
 }
 
 export class ConsumptionService {
+
+    private readonly alertService: AlertService;
+
     constructor(
         private readonly eventRepository: ConsumptionEventRepository,
         private readonly currentRepository: ConsumptionCurrentRepository,
         private readonly repository: ConsumptionRepository) {
+        this.alertService = new AlertService();
     }
 
     // esse método assinc vai registrar um evento de consumo.
@@ -117,6 +122,19 @@ export class ConsumptionService {
             return;
         }
 
+        if (used >= 1.5) {
+            await this.eventRepository.save({
+                user_id: data.user_id,
+                weight_kg: data.weight_kg,
+                percent: data.percent,
+                event: "SIGNIFICANT_DROP",
+            });
+
+            console.log(`[SERVICE] Significant drop detected for user ${data.user_id} (used=${used.toFixed(3)}kg)`);
+        }
+
+        await this.registerEvent(data);
+
         const now = new Date();
         const hourBucket = hourBucketUTC(now);
         const dayBucket = dayBucketUTC(now);
@@ -124,6 +142,18 @@ export class ConsumptionService {
         await this.currentRepository.updateCurrent(data);
         await this.currentRepository.upsertHourly(data.user_id, hourBucket, used);
         await this.currentRepository.upsertDaily(data.user_id, dayBucket, used);
+
+        try {
+            // Feature 2
+            await this.alertService.checkHighConsumption(data.user_id);
+
+            // Feature 3
+            await this.alertService.checkPossibleLeak(data.user_id);
+        } catch (err: unknown) {
+            // não quebra o processamento do sensor
+            const msg = err instanceof Error ? err.message : String(err);
+            console.error(`[SERVICE] Alert checks failed for user ${data.user_id}: ${msg}`);
+        }
 
 
     }
