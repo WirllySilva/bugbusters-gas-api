@@ -43,7 +43,7 @@ Baseado na especificação SRS do projeto, a API cobre (MVP):
 - Arquitetura em camadas (Controllers / Services / Repositories)
 - Suporte a múltiplos endereços por usuário
 
-> Observação: itens como “criptografia de telefone/endereço” e “HTTPS obrigatório” são requisitos comuns para produção, mas em ambiente local/academia podem estar **fora do escopo do MVP** (depende da sua implementação atual).
+> Observação: itens como “criptografia de telefone/endereço” e “HTTPS obrigatório” são requisitos comuns para produção, mas em ambiente local/academia podem estar **fora do escopo do MVP**.
 
 ---
 
@@ -349,6 +349,7 @@ Sugestão de fluxo Git:
 ### 11.1 Modelo Entidade-Relacionamento (ER)
 
 O diagrama abaixo representa a modelagem lógica do banco de dados da aplicação Gas Control API.
+![Diagrama Entidade Relacionamento](./diagrams/er-diagram.png)
 
 Descrição:
 
@@ -362,7 +363,7 @@ Descrição:
 
 - O histórico de consumo é persistido em diferentes granularidades:
 
-    - `consumption_curren`t → estado atual do botijão
+    - `consumption_current` → estado atual do botijão
 
     - `consumption_hourly` → consumo por hora
 
@@ -382,7 +383,6 @@ Descrição:
 
 Esse modelo garante normalização, rastreabilidade do consumo e separação clara de responsabilidades entre cliente e fornecedor.
 
-![login-fornecedor](/docs/diagrams/er-diagram.png)
 ---
 
 ### 11.2 Diagrama de Casos de Uso
@@ -439,7 +439,8 @@ Principais casos de uso:
 
 Este diagrama evidencia a separação funcional do sistema e a interação entre usuários humanos e componentes automatizados.
 
-![login-fornecedor](/docs/diagrams/usecase-diagram.png)
+<img src="./diagrams/usecase-diagram.png" alt="login-fornecedor" width="500">
+
 ---
 ### 11.3 Caso de Uso — Fake Sensor System
 
@@ -461,7 +462,7 @@ Descrição do fluxo:
 
 Esse mecanismo permite testar todo o sistema sem necessidade de hardware físico, atendendo ao escopo acadêmico do projeto.
 
-![login-fornecedor](/docs/diagrams/fakesensor-usecase.png)
+![Diagrama de casos de uso do sensor](./diagrams/fakesensor-usecase.png)
 ---
 ### 11.4 Fluxograma — Cadastro e Login do Cliente
 
@@ -491,7 +492,7 @@ Descrição do processo:
 
 Erros de validação (telefone inválido ou OTP incorreto) retornam mensagens apropriadas.
 
-![login-fornecedor](/docs/diagrams/login-cadastro-cliente.png)
+![login-cliente](./diagrams/login-cadastro-cliente.png)
 
 ---
 ### 11.5 Fluxograma — Cadastro e Login do Fornecedor
@@ -506,6 +507,6 @@ Diferenças principais:
 
 - O sistema valida o papel (role = SUPPLIER) antes de permitir acesso às funcionalidades de gestão de pedidos.
 
-![login-fornecedor](/docs/diagrams/login-cadastro-fornecedor.png)
+![login-fornecedor](./diagrams/login-cadastro-fornecedor.png)
 
 ---
