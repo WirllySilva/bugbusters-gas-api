@@ -124,10 +124,6 @@ model address {
   orders order[]
 }
 
-// ==========================
-//  SENSOR READING AND 
-//  CONSUMPTION HISTORY
-// ==========================
 
 model consumption_event {
   id         String               @id @default(uuid())
