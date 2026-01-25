@@ -222,6 +222,11 @@ export class NotificationService {
         title: "Pedido a caminho",
         message: `Seu pedido ${data.order_id} está em trânsito.`,
       },
+      PICKED_UP: {
+        template: "ORDER_STATUS_PICKED_UP",
+        title: "Pedido retirado",
+        message: "Seu pedido foi retirado com sucesso.",
+      },
       DELIVERED: {
         template: "ORDER_DELIVERED",
         title: "Pedido entregue",
@@ -255,5 +260,5 @@ export class NotificationService {
 
     return { whatsapp, push };
   }
-  
+
 }

@@ -58,7 +58,7 @@ export class OrderRepository {
 
   async updateStatus(params: {
     order_id: string;
-    status: "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+    status: "IN_TRANSIT" | "DELIVERED" |"PICKED_UP" | "CANCELLED";
     delivered_at?: Date | null;
   }) {
     return prisma.order.update({

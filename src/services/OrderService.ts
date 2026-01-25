@@ -210,7 +210,7 @@ export class OrderService {
             supplier_id?: string;
             status?: "PENDING" | "ACCEPTED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
         } = {};
-        
+
         if (query.status) where.status = query.status;
 
         if (role === "CLIENT") where.client_id = auth.user_id;
@@ -234,24 +234,53 @@ export class OrderService {
     ) {
         const role = auth.role as Role;
 
+        // Apenas SUPPLIER pode atualizar status
         if (role !== "SUPPLIER") {
-            return { status: 403, body: { message: "Apenas fornecedores podem atualizar status." } };
+            return {
+                status: 403,
+                body: { message: "Apenas fornecedores podem atualizar status." },
+            };
         }
 
+        // Pedido existe?
         const order = await this.orderRepository.findById(order_id);
-        if (!order) return { status: 404, body: { message: "Pedido não encontrado." } };
+        if (!order) {
+            return { status: 404, body: { message: "Pedido não encontrado." } };
+        }
 
+        // Pedido pertence ao fornecedor logado?
         if (order.supplier_id !== auth.user_id) {
-            return { status: 403, body: { message: "Você não tem permissão para alterar este pedido." } };
+            return {
+                status: 403,
+                body: { message: "Você não tem permissão para alterar este pedido." },
+            };
         }
 
         const current = order.status as Status;
         const next = dto.status;
+        const deliveryType = order.delivery_type; // "DELIVERY" | "PICKUP"
 
-        // Transições permitidas
-        const isValidTransition =
-            (current === "ACCEPTED" && next === "IN_TRANSIT") ||
-            (current === "IN_TRANSIT" && next === "DELIVERED");
+        let isValidTransition = false;
+
+        // Regras para PICKUP
+        if (deliveryType === "PICKUP") {
+            if (next === "IN_TRANSIT") {
+                return {
+                    status: 400,
+                    body: {
+                        message: "Pedidos PICKUP não podem ser marcados como IN_TRANSIT.",
+                    },
+                };
+            }
+
+            // ACCEPTED -> PICKED_UP
+            isValidTransition = current === "ACCEPTED" && next === "PICKED_UP";
+        } else {
+            // Regras para DELIVERY
+            isValidTransition =
+                (current === "ACCEPTED" && next === "IN_TRANSIT") ||
+                (current === "IN_TRANSIT" && next === "DELIVERED");
+        }
 
         if (!isValidTransition) {
             return {
@@ -260,7 +289,11 @@ export class OrderService {
             };
         }
 
-        const delivered_at = next === "DELIVERED" ? new Date() : undefined;
+        // Define data de finalização
+        const delivered_at =
+            next === "DELIVERED" || next === "PICKED_UP"
+                ? new Date()
+                : undefined;
 
         const updated = await this.orderRepository.updateStatus({
             order_id,
@@ -268,7 +301,7 @@ export class OrderService {
             delivered_at,
         });
 
-        // ✅ ADD: notifica CLIENTE (IN_TRANSIT / DELIVERED)
+        // Notifica cliente
         try {
             await this.notificationService.notifyOrderStatusToClient({
                 order_id: updated.order_id,
@@ -282,7 +315,10 @@ export class OrderService {
 
         return {
             status: 200,
-            body: { message: "Status atualizado com sucesso.", order: updated },
+            body: {
+                message: "Status atualizado com sucesso.",
+                order: updated,
+            },
         };
     }
 

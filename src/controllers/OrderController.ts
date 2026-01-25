@@ -87,14 +87,21 @@ export class OrderController {
 
     updateStatus = async (req: Request, res: Response) => {
         const authedReq = req as AuthedRequest;
-        if (!authedReq.auth) return res.status(401).json({ message: "Token ausente." });
+        if (!authedReq.auth) {
+            return res.status(401).json({ message: "Token ausente." });
+        }
 
         const { order_id } = req.params;
         const body = req.body as Partial<UpdateOrderStatusDTO>;
 
-        if (!order_id) return res.status(400).json({ message: "order_id é obrigatório." });
-        if (!body.status || (body.status !== "IN_TRANSIT" && body.status !== "DELIVERED")) {
-            return res.status(400).json({ message: "status deve ser IN_TRANSIT ou DELIVERED." });
+        if (!order_id) {
+            return res.status(400).json({ message: "order_id é obrigatório." });
+        }
+
+        if (!body.status || !["IN_TRANSIT", "DELIVERED", "PICKED_UP"].includes(body.status)) {
+            return res.status(400).json({
+                message: "status deve ser IN_TRANSIT, DELIVERED ou PICKED_UP.",
+            });
         }
 
         const result = await this.orderService.updateOrderStatus(
